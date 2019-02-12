@@ -1,0 +1,42 @@
+#calendar-header {
+    text-align: center;
+    margin-top: 50px;
+    margin-bottom: 50px;
+}
+
+#month-name {
+    margin-left: 30px;
+    margin-right: 30px;
+}
+
+#calendar-holder {
+    text-align: center;
+    align-items: center;
+    height: 100%;
+}
+
+table, th, td {
+    border: 1px solid black;
+    border-collapse: collapse;
+}
+
+table {
+    display: inline-table;
+    width: 80%;
+    table-layout: fixed;
+}
+
+tr {
+    height: 50px;
+    width: 100%;
+}
+
+td {
+    width: 50px;
+}
+
+/* #calendar-table {
+    align-self: center;
+    padding-left: 20%;
+    padding-right: 20%;
+} */
