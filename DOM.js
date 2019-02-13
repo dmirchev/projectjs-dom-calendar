@@ -42,21 +42,27 @@ var DOM =
         return element;
     },
 
-    "createElementToExistingElement" : function(tag, textValueCallback, parentID = null)
+    // setType = true - id / false - Class
+    "createElementToExistingElement" : function(tag, id, className, parentID = null)
     {
         var allElements = this.getAllElements();
-        var idCallback = textValueCallback();
 
         //Get Element ID from User
         var elementID = 0;
         //var tag = "div";
         console.log(parentID);
+        console.log("id - " + id);
 
         var newElement = this.createElementByTag(tag);
+        console.log(newElement);
 
         if(parentID != null)
         {
-            newElement.id = tag + "-" + idCallback
+            //if(setType == true)
+                newElement.id = tag + "-" + id;
+            //else
+                newElement.className = className;
+            
             console.log(newElement.id);
 
             /* if(tag == "td")
@@ -72,6 +78,11 @@ var DOM =
         parentElement.appendChild(newElement);
 
         return newElement;
+    },
+
+    "createInnerHTML" : function(element, text)
+    {
+        element.innerHTML = text;
     },
 
     //TODO
