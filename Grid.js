@@ -1,3 +1,6 @@
+var table;
+var eventViewer;
+
 var gridElements = [];
 var monthElements = [];
 var weekElements = [];
@@ -107,6 +110,7 @@ function SetSelectedDayEvent(background, cell)
     background.addEventListener('click', function()
     {
         SelectDay(cell);
+        EventViewer.setEventViewer(cell);
     });
 }
 
@@ -120,12 +124,17 @@ function SelectDay(cell)
 
     if(cell != selectedCell)
     {
+        SwitchTableClass(true);
+
         selectedCell = cell;
 
         selectedCell.element.className = "selected-" + selectedCell.element.className;
     }
     else
+    {
         selectedCell = null;
+        SwitchTableClass(false);
+    }
 }
 
 function GetFirstWeekDay()
@@ -145,19 +154,22 @@ function IsLeapYear(year)
     return ((year % 4 == 0) && (year % 100 != 0)) || (year % 400 == 0);
 }
 
-function SetMonthNameDynamic(index)
+function SetMonthNameDynamic(month)
 {
     //When We Change Month/Year We remove the Selected Day
     //If we have Set it Before That
     if(selectedCell)
         SelectDay(selectedCell);
 
-    SetMonth(monthElements[index]);
+    SetMonth(monthElements[month]);
     
     year.innerHTML = currentYear;
-    month.innerHTML = months[index];
+    month.innerHTML = months[month];
 
-    SetDates(index);
+    EventDabase.initDisplayEvents();
+    EventDabase.getCurrentEvents(currentYear, month);
+
+    SetDaysInCells(month);
 }
 
 function GetNextCounter()
@@ -269,7 +281,7 @@ function GetMonthList()
 
 function Grid(rows, columns)
 {
-    DOM.createElementByTag("table", "calendar-table"); // <table id="calendar-table" width="100%"></table>
+    table = DOM.createElementByTag("table", "calendar-table", "div-calendar-holder"); // <table id="calendar-table" width="100%"></table>
 
     GridHeader();
     GetMonthList();
@@ -294,6 +306,7 @@ function Grid(rows, columns)
 
         for(var x = 0; x < rows; x++)
         {
+            var conter = GetNextCounter();
             var dayClassName = "weekday";
 
             if(x > 4)
@@ -302,27 +315,35 @@ function Grid(rows, columns)
             // var element = DOM.createElementToExistingElement("td", GetNextCounter(), 
             // dayClassName, "tr-" + y);
 
-            var tableData = DOM.createElementToExistingElement("td", GetNextCounter(), 
+            var tableData = DOM.createElementToExistingElement("td", conter, 
             dayClassName + "-background", "tr-" + y);
 
             //tableData.style.zIndex = y + 1;
 
-            var element = DOM.createElementToExistingElement("div", GetNextCounter(), 
+            var element = DOM.createElementToExistingElement("div", conter, 
             dayClassName, tableData.id);
             
             element.style.zIndex = y;
 
-            gridElements.push(new Cell(x, y, element, dayClassName));
+            var eventElement = new EventElement();
+            eventElement.parentDiv = CrateParentDiv(element, conter)
+            eventElement.dayHeading = CreateDayElements(eventElement.parentDiv, conter);
+            eventElement.messageDiv = CreateMessageElements(eventElement.parentDiv, conter);
+
+            gridElements.push(new Cell(x, y, element, dayClassName, eventElement));
             SetSelectedDayEvent(tableData, gridElements[gridElements.length - 1]);
 
             console.log(gridCounter);
         }
     }
 
+    EventDabase.initEventDatave();
+    eventViewer = EventViewer.createEventViewer();
+
     SetMonthNameDynamic(currentMonth);
 }
 
-function SetDates(month)
+function SetDaysInCells(month)
 {
     if(month == 1)
     {
@@ -369,6 +390,7 @@ function PopulateGridWithDates(days)
 
     for(var i = 0; i < gridElements.length; i++)
     {
+        //Set Day Class
         //gridElements[i].element.style.display = 'block';
         gridElements[i].element.className = gridElements[i].defaultClass;
 
@@ -398,25 +420,55 @@ function PopulateGridWithDates(days)
             todaysIndex = -2;
         }
 
+        //Set Days in Event Element
         if(days + firstWeekDay > gridElements.length + i)
         {
-            gridElements[i].element.innerHTML = days - i;
+            //gridElements[i].element.innerHTML = days - i;
+            //gridElements[i].event.element.dayHeader.innerHTML = days - i;
+
+            //Set Day
+            gridElements[i].day = days - i;
+            DOM.createInnerHTML(gridElements[i].eventElement.dayHeading, days - i);
+
+            //St Message
+            gridElements[i].eventInfo = EventDabase.getEvent(days - i);
+            DOM.createMessage(gridElements[i].eventElement.messageDiv, gridElements[i].eventInfo.message);
+
             continue;
         }
 
         if(i >= firstWeekDay && i < days + firstWeekDay)
         {
-            gridElements[i].element.innerHTML =  (i + 1) - firstWeekDay;
+            //gridElements[i].element.innerHTML =  (i + 1) - firstWeekDay;
+            //gridElements[i].event.element.dayHeader.innerHTML = (i + 1) - firstWeekDay;
+            console.log("element" + gridElements[i].eventElement);
+            //Set Day
+            gridElements[i].day = (i + 1) - firstWeekDay;
+            DOM.createInnerHTML(gridElements[i].eventElement.dayHeading, (i + 1) - firstWeekDay);
+            
+            //Set Message
+            gridElements[i].eventInfo = EventDabase.getEvent((i + 1) - firstWeekDay);
+            DOM.createMessage(gridElements[i].eventElement.messageDiv, gridElements[i].eventInfo.message);
+
             continue;
         }
         
         if(firstWeekDay == -1 && i == gridElements.length - 1)
         {
-            gridElements[gridElements.length - 1].element.innerHTML = 1;
+            //gridElements[gridElements.length - 1].element.innerHTML = 1;
+            //gridElements[i].event.element.dayHeader.innerHTML = 1;
+
+            //Set DAy
+            gridElements[i].day = 1;
+            DOM.createInnerHTML(gridElements[i].eventElement.dayHeading, 1);
+
+            gridElements[i].eventInfo = EventDabase.getEvent(1);
+            DOM.createMessage(gridElements[i].eventElement.messageDiv, gridElements[i].eventInfo.message);
+
             continue;
         }
 
-
+        gridElements[i].day = "";
 
         //gridElements[i].element.innerHTML = "";
         //gridElements[i].element.style.display = 'none';
@@ -432,7 +484,7 @@ function PopulateGridHeader()
     }
 }
 
-function Cell(x, y, element, defaultClass)
+function Cell(x, y, element, defaultClass, eventElement = null)
 {
     this.x = x;
     this.y = y;
@@ -440,11 +492,28 @@ function Cell(x, y, element, defaultClass)
     this.element = element;
 
     this.defaultClass = defaultClass;
+    this.eventElement = eventElement;
+    this.eventInfo;
 
-    this.value = "";
+    this.day = "";
 }
 
 Cell.prototype.SetValue = function(value)
 {
-    this.value = value;
+    this.day = value;
+}
+
+function SwitchTableClass(isSelected)
+{
+    console.log(isSelected);
+    if(isSelected)
+    {
+        table.id = "calendar-table-selected";
+        eventViewer.id = "event-viewer-selected";
+    }
+    else
+    {
+        table.id = "calendar-table";
+        eventViewer.id = "event-viewer";
+    }
 }

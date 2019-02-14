@@ -1,5 +1,9 @@
 var tags = ["div", "span", "table"];
 
+minFontSize = 10;
+maxFontSize = 16;
+maxMessageLength = 40;
+
 var DOM = 
 {
     "getElementByID" : function(id)
@@ -31,10 +35,13 @@ var DOM =
         return allElements;
     },
 
-    "createElementByTag": function(tag, id)
+    "createElementByTag": function(tag, id, className = null)
     {
         var element = document.createElement(tag);
         element.id = id;
+
+        if(className != null)
+            element.className = className;
 
         var parentElement = document.getElementById("calendar-holder");
         parentElement.appendChild(element);
@@ -50,7 +57,7 @@ var DOM =
         //Get Element ID from User
         var elementID = 0;
         //var tag = "div";
-        console.log(parentID);
+        console.log("parentID: " + parentID);
         console.log("id - " + id);
 
         var newElement = this.createElementByTag(tag);
@@ -84,6 +91,35 @@ var DOM =
     {
         element.innerHTML = text;
     },
+
+    "createMessage" : function(element, text)
+    {
+        this.createInnerHTML(element, text);
+        this.setFontSize(element);
+    },
+
+    "setFontSize" : function(element)
+    {
+        var length = element.innerHTML.length;
+
+        var size = this.remap(length, 8, 40, 20, 10);
+        
+        element.style.fontSize = size + "px";
+    },
+
+    "remap" : function(value, from1, to1, from2, to2) {
+        return (value - from1) / (to1 - from1) * (to2 - from2) + from2;
+    },
+
+    //(m_Speed - minSpeed) / (maxSpeed - minSpeed)
+
+    /* if(!m_SpeedLock)
+    {
+        if(m_Speed < maxSpeed)
+            m_Speed += k_Acceleration * Time.deltaTime;
+        else
+            m_Speed = maxSpeed;
+    } */
 
     //TODO
     "updateElementByID" : function()
