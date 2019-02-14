@@ -1,5 +1,8 @@
 var gridElements = [];
+var monthElements = [];
 var weekElements = [];
+var selectedMonth = null;
+var selectedCell = null;
 var weekDays = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"];
 var months =  ["January", "February", "March", "April", "May", "June", 
 "July", "August", "September", "October", "November", "December"];
@@ -22,6 +25,7 @@ var month;// = document.getElementById("span-month-name");
 //-1: Today is in This Month and Year
 //>0: Today's Index for The gridElements has been SET
 var todaysIndex = -2;
+var todaysClassHolder = "";
 
 function GetElementsFromHTML()
 {
@@ -75,13 +79,53 @@ function GetElementsFromHTML()
     });
 }
 
-function SetLinkEvent(element)
+function SetLinkMonthEvent(div, element)
 {
-    element.addEventListener('click', function(e)
+    div.addEventListener('click', function()
     {
-        currentMonth = e.target.value
+        SetMonth(element);
+
         SetMonthNameDynamic(currentMonth);
     });
+}
+
+function SetMonth(element)
+{
+    if(selectedMonth)
+        selectedMonth.className = selectedMonth.className.replace("-selected","");
+    //monthElements[currentMonth].className = monthElements[currentMonth].className.replace("-selected","");
+
+    //currentMonth = e.target.value
+    currentMonth = element.value
+
+    selectedMonth = element;
+    selectedMonth.className = selectedMonth.className + "-selected";
+}
+
+function SetSelectedDayEvent(background, cell)
+{
+    background.addEventListener('click', function()
+    {
+        SelectDay(cell);
+    });
+}
+
+function SelectDay(cell)
+{
+    if(selectedCell)
+    {
+        //selectedCell.element.className = selectedCell.defaultClass;
+        selectedCell.element.className = selectedCell.element.className.replace("selected-","");
+    }
+
+    if(cell != selectedCell)
+    {
+        selectedCell = cell;
+
+        selectedCell.element.className = "selected-" + selectedCell.element.className;
+    }
+    else
+        selectedCell = null;
 }
 
 function GetFirstWeekDay()
@@ -103,6 +147,13 @@ function IsLeapYear(year)
 
 function SetMonthNameDynamic(index)
 {
+    //When We Change Month/Year We remove the Selected Day
+    //If we have Set it Before That
+    if(selectedCell)
+        SelectDay(selectedCell);
+
+    SetMonth(monthElements[index]);
+    
     year.innerHTML = currentYear;
     month.innerHTML = months[index];
 
@@ -195,13 +246,19 @@ function GetMonthList()
 
     for(var i = 0; i < months.length; i++)
     {
+        var element = DOM.createElementToExistingElement("div", "month-" + months[i], 
+        "div-month", "div-" + calenderMonthList);
+        
         var monthLink = DOM.createElementToExistingElement("a", "month-" + months[i],
-        "month-list", "div-" + calenderMonthList);
-        monthLink.href = '#'
+        "month-link", "div-month-" + months[i]);
+        //monthLink.href = '#'
         monthLink.value = i;
+
         DOM.createInnerHTML(monthLink, months[i]);
 
-        SetLinkEvent(monthLink);
+        monthElements.push(monthLink);
+
+        SetLinkMonthEvent(element, monthLink);
     }
 
     /* var monthLink = DOM.createElementToExistingElement("a", "month-jan",
@@ -225,7 +282,7 @@ function Grid(rows, columns)
     {
         var element = DOM.createElementToExistingElement("td", GetWeekDays(i), "week", weekRowID);
 
-        weekElements.push(new Element(i, -1, element));
+        weekElements.push(new Cell(i, -1, element, GetWeekDays(i)));
     }
 
     PopulateGridHeader();
@@ -242,10 +299,21 @@ function Grid(rows, columns)
             if(x > 4)
                 dayClassName = "weekend";
             
-            var element = DOM.createElementToExistingElement("td", GetNextCounter(), 
-            dayClassName, "tr-" + y);
+            // var element = DOM.createElementToExistingElement("td", GetNextCounter(), 
+            // dayClassName, "tr-" + y);
 
-            gridElements.push(new Element(x, y, element));
+            var tableData = DOM.createElementToExistingElement("td", GetNextCounter(), 
+            dayClassName + "-background", "tr-" + y);
+
+            //tableData.style.zIndex = y + 1;
+
+            var element = DOM.createElementToExistingElement("div", GetNextCounter(), 
+            dayClassName, tableData.id);
+            
+            element.style.zIndex = y;
+
+            gridElements.push(new Cell(x, y, element, dayClassName));
+            SetSelectedDayEvent(tableData, gridElements[gridElements.length - 1]);
 
             console.log(gridCounter);
         }
@@ -301,6 +369,9 @@ function PopulateGridWithDates(days)
 
     for(var i = 0; i < gridElements.length; i++)
     {
+        //gridElements[i].element.style.display = 'block';
+        gridElements[i].element.className = gridElements[i].defaultClass;
+
         if(checkForToday)
         {
             if(todaysIndex == -1)
@@ -308,14 +379,22 @@ function PopulateGridWithDates(days)
                 if(today == ((i + 1) - firstWeekDay))
                 {
                     todaysIndex = i;
-                    gridElements[i].element.style.backgroundColor = "#4183cc";
+                    //gridElements[i].element.style.backgroundColor = "#4183cc";
+                    todaysClassHolder = gridElements[i].element.className;
+
+                    if(gridElements[i].element.className == "weekday")
+                        gridElements[i].element.className = "today-weekday";
+                    else
+                        gridElements[i].element.className = "today-weekend";
                 }
             }
         }
 
-        if(!checkForToday && todaysIndex > -1)
+        if(!checkForToday && todaysIndex == i)
         {
-            gridElements[todaysIndex].element.style.backgroundColor = "#7ea3cc";
+            console.log(todaysClassHolder);
+            //gridElements[todaysIndex].element.style.backgroundColor = "#7ea3cc";
+            gridElements[i].element.className = todaysClassHolder;
             todaysIndex = -2;
         }
 
@@ -339,7 +418,9 @@ function PopulateGridWithDates(days)
 
 
 
-        gridElements[i].element.innerHTML = "";
+        //gridElements[i].element.innerHTML = "";
+        //gridElements[i].element.style.display = 'none';
+        gridElements[i].element.className = "empty";
     }
 }
 
@@ -351,17 +432,19 @@ function PopulateGridHeader()
     }
 }
 
-function Element(x, y, element)
+function Cell(x, y, element, defaultClass)
 {
     this.x = x;
     this.y = y;
 
     this.element = element;
 
+    this.defaultClass = defaultClass;
+
     this.value = "";
 }
 
-Element.prototype.SetValue = function(value)
+Cell.prototype.SetValue = function(value)
 {
     this.value = value;
 }

@@ -58,7 +58,7 @@ var DOM =
 
         if(parentID != null)
         {
-            //if(setType == true)
+            if(id != null)
                 newElement.id = tag + "-" + id;
             //else
                 newElement.className = className;

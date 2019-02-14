@@ -47,6 +47,29 @@ body {
     margin-right: 30px;
 }
 
+/* .month-link, .div-calendar-list {
+    border: 2px solid orangered;
+    border-collapse: collapse;
+} */
+
+.month-link {
+    transition: transform 300ms ease-in-out;
+    color: white;
+    background-color: rgb(245, 111, 62);
+}
+
+.month-link-selected {
+    transition: transform 300ms ease-in-out;
+    transform: translateY(-10px);
+    color: white;
+    background-color: rgb(252, 170, 141);
+}
+
+.div-month:hover .month-link {
+    transform: translateY(-10px);
+    /* transform: scale(1.5); */
+}
+
 #calendar-holder {
     text-align: center;
     align-items: center;
@@ -60,13 +83,19 @@ body {
     display: flex;
     justify-content: space-evenly;
     margin-bottom: 25px;
+    background-color: rgb(245, 111, 62);
 }
 
-.month-list {
-    color: white;
+.div-month {
+    height: 50px;
+    text-align: center;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
 }
 
-table, th, td {
+table, td {
     border: 2px solid orangered;
     border-collapse: collapse;
 }
@@ -77,13 +106,24 @@ table {
     table-layout: fixed;
 }
 
-tr {
-    height: 50px;
+/* tr {
     width: 100%;
+    height: 100%;
+} */
+
+/* td {
+    width: 50px;
+} */
+
+.weekday-background {
+    background-color: #396ba5;
+    padding: 0%;
 }
 
-td {
-    width: 50px;
+.weekend-background {
+    background-color: #7a0315;
+    padding: 0%;
+    /* overflow: hidden; */
 }
 
 .week {
@@ -93,14 +133,138 @@ td {
 }
 
 .weekday {
+    opacity: 1;
     /* background-color: rgb(237, 191, 118); */
+    text-align: center;
+    height: 50px;
     background-color: #7ea3cc;
     color: white;
+    transition: transform 300ms ease-in-out,
+                opacity 300ms ease-in-out;
+}
+
+.weekday-background:hover .weekday {
+    transform: translateY(-10px);
+    background-color: #6096d3;
+    /* transform: translate3d(0, 0, 10px); */
+    /* transform: perspective(500px) translate3d(-25px, 0, 100px); */
 }
 
 .weekend {
+    opacity: 1;
+    text-align: center;
+    height: 50px;
     background-color: #b3001b;
     color: white;
+    transition: transform 300ms ease-in-out,
+                opacity 300ms ease-in-out;
+}
+
+.weekend-background:hover .weekend {
+    /* transform: perspective(500px) translate3d(0, 0, 100px); */
+    transform: translateY(-10px);
+    background-color: #960118;
+}
+
+.today-weekday {
+    opacity: 1;
+    height: 50px;
+    background-color: #4183cc;
+    color: white;
+    transition: transform 300ms ease-in-out,
+                opacity 300ms ease-in-out;
+    transform: translateY(-18px);
+}
+
+.weekday-background:hover .today-weekday {
+    /* transform: perspective(500px) translate3d(0, 0, 100px); */
+    transform: translateY(-10px);
+    background-color: #4183cc;
+}
+
+.today-weekend {
+    opacity: 1;
+    height: 50px;
+    background-color: #b12339;
+    color: white;
+    transition: transform 300ms ease-in-out,
+                opacity 300ms ease-in-out;
+    transform: translateY(-18px);
+}
+
+.weekend-background:hover .today-weekend {
+    /* transform: perspective(500px) translate3d(0, 0, 100px); */
+    transform: translateY(-10px);
+    background-color: #d1354d;
+}
+
+.empty {
+    opacity: 0;
+    position: relative;
+    height: 50px;
+    transition: transform 300ms ease-in-out,
+                opacity 300ms ease-in-out;
+}
+
+.selected-weekday {
+    opacity: 1;
+    height: 50px;
+    background-color: #5292db;
+    color: white;
+    transition: transform 300ms ease-in-out,
+                opacity 300ms ease-in-out;
+    transform: translateY(-15px);
+}
+
+.selected-weekend {
+    opacity: 1;
+    height: 50px;
+    background-color: #a10f25;
+    color: white;
+    transition: transform 300ms ease-in-out,
+                opacity 300ms ease-in-out;
+    transform: translateY(-15px);
+}
+
+.selected-today-weekday {
+    opacity: 1;
+    height: 50px;
+    background-color: #4b93e6;
+    color: white;
+    transition: transform 300ms ease-in-out,
+                opacity 300ms ease-in-out;
+    transform: translateY(-30px);
+}
+
+.selected-today-weekend {
+    opacity: 1;
+    height: 50px;
+    background-color: #d13149;
+    color: white;
+    transition: transform 300ms ease-in-out,
+                opacity 300ms ease-in-out;
+    transform: translateY(-30px);
+}
+
+@keyframes switchMonth {
+    0%, 100% {
+        transform: translateY(0px);
+    }
+
+    50% {
+        transform: translateY(5px);
+    }
+}
+
+.weekend.switch-month {
+    overflow: hidden;
+    animation-name: switchMonth;
+    animation-duration: 600ms;
+    animation-timing-function: ease-in-out;
+    animation-delay: 0s;
+    animation-iteration-count: 1;
+    animation-direction: normal;
+    animation-fill-mode: forwards;
 }
 
 /* #calendar-table {
